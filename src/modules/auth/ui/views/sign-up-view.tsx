@@ -54,11 +54,31 @@ export const SignUpView = () => {
         name: data.name,
         email: data.email,
         password: data.password,
+        callbackURL: "/",
       },
       {
         onSuccess: () => {
           setPending(false);
-          router.push("/");
+          router.push("/")
+        },
+        onError: ({ error }) => {
+          setError(error.message);
+        },
+      }
+    );
+  };
+
+  const onSocial = (provider: "github" | "google") => {
+    setError(null);
+    setPending(true);
+    authClient.signIn.social(
+      {
+        provider: provider,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
         },
         onError: ({ error }) => {
           setError(error.message);
@@ -81,7 +101,7 @@ export const SignUpView = () => {
                   </p>
                 </div>
 
-                  <div className="grid gap-3">
+                <div className="grid gap-3">
                   <FormField
                     control={form.control}
                     name="name"
@@ -140,7 +160,7 @@ export const SignUpView = () => {
                   />
                 </div>
 
-                  <div className="grid gap-3">
+                <div className="grid gap-3">
                   <FormField
                     control={form.control}
                     name="confirmPassword"
@@ -182,6 +202,7 @@ export const SignUpView = () => {
                     variant={"outline"}
                     type="button"
                     className="w-full"
+                    onClick={() => onSocial("google")}
                   >
                     Google
                   </Button>
@@ -191,6 +212,7 @@ export const SignUpView = () => {
                     variant={"outline"}
                     type="button"
                     className="w-full"
+                    onClick={() => onSocial("github")}
                   >
                     Github
                   </Button>

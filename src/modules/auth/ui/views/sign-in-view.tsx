@@ -25,6 +25,8 @@ const formSchema = z.object({
   password: z.string().min(1, { message: "Password is required" }),
 });
 
+
+
 export const SignInView = () => {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -44,11 +46,12 @@ export const SignInView = () => {
       {
         email: data.email,
         password: data.password,
+        callbackURL: "?",
       },
       {
         onSuccess: () => {
           setPending(false);
-          router.push("/");
+          router.push("/")
         },
         onError: ({ error }) => {
           setError(error.message);
@@ -56,6 +59,26 @@ export const SignInView = () => {
       }
     );
   };
+
+  const onSocial = (provider: "github" | "google") => {
+    setError(null);
+    setPending(true);
+    authClient.signIn.social(
+      {
+        provider: provider,
+        callbackURL: "/",
+      },
+      {
+        onSuccess: () => {
+          setPending(false);
+        },
+        onError: ({ error }) => {
+          setError(error.message);
+        },
+      }
+    );
+  };
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -131,6 +154,7 @@ export const SignInView = () => {
                     variant={"outline"}
                     type="button"
                     className="w-full"
+                    onClick={() => onSocial("google")}
                   >
                     Google
                   </Button>
@@ -140,6 +164,7 @@ export const SignInView = () => {
                     variant={"outline"}
                     type="button"
                     className="w-full"
+                    onClick={() => onSocial("github")}
                   >
                     Github
                   </Button>
