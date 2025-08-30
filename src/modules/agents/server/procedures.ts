@@ -2,7 +2,7 @@ import { db } from "@/db";
 import { z } from "zod";
 import { agents } from "@/db/schema";
 import { createTRPCRouter, protectedProcedure } from "@/trpc/init";
-import { agenetInsertSchema } from "../schemas";
+import { agenetInsertSchema, agentsUpdateSchema } from "../schemas";
 import { and, count, desc, eq, getTableColumns, ilike, sql } from "drizzle-orm";
 import {
   DEFAULT_PAE_SIZE,
@@ -13,9 +13,47 @@ import {
 import { TRPCError } from "@trpc/server";
 
 export const agentRouter = createTRPCRouter({
+  update: protectedProcedure
+    .input(agentsUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [updatedAgent] = await db
+        .update(agents)
+        .set(input)
+        .where(
+          and(
+            eq(agents.id, input.id),
+            eq(agents.userId, ctx.auth.user.id)
+          )
+        )
+        .returning()
+
+      if (!updatedAgent) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Agent not found !!" })
+      }
+      return updatedAgent
+    })
+  ,
+  remove: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [removeAgent] = await db
+        .delete(agents)
+        .where(
+          and(
+            eq(agents.id, input.id),
+            eq(agents.userId, ctx.auth.user.id)
+          )
+        )
+        .returning()
+      if (!removeAgent) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Agent not found !!" })
+      }
+      return removeAgent
+    })
+  ,
   getOne: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input,ctx }) => {
+    .query(async ({ input, ctx }) => {
       const [existingAgent] = await db
         .select({
           meetingCount: sql<number>`6`,
@@ -25,13 +63,13 @@ export const agentRouter = createTRPCRouter({
         .where(
           and(
             eq(agents.id, input.id),
-            eq(agents.userId,ctx.auth.user.id)
+            eq(agents.userId, ctx.auth.user.id)
           )
         )
 
-        if(!existingAgent){
-          throw new TRPCError({code:"NOT_FOUND",message:"Agent not found !!"})
-        }
+      if (!existingAgent) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Agent not found !!" })
+      }
 
       return existingAgent;
     }),
@@ -48,10 +86,10 @@ export const agentRouter = createTRPCRouter({
             .default(DEFAULT_PAE_SIZE),
           search: z.string().nullish(),
         })
-        
+
     )
     .query(async ({ ctx, input }) => {
-      const {page,search,pageSize} = input
+      const { page, search, pageSize } = input
       const data = await db
         .select({ meetingCount: sql<number>`6`, ...getTableColumns(agents) })
         .from(agents)
@@ -61,26 +99,26 @@ export const agentRouter = createTRPCRouter({
             search ? ilike(agents.name, `%${search}%`) : undefined
           )
         )
-        .orderBy(desc(agents.createdAt),desc(agents.id))
+        .orderBy(desc(agents.createdAt), desc(agents.id))
         .limit(pageSize)
-        .offset((page-1)*pageSize)
+        .offset((page - 1) * pageSize)
 
 
-        const [total] = await db
-        .select({count:count()})
+      const [total] = await db
+        .select({ count: count() })
         .from(agents)
-         .where(
+        .where(
           and(
             eq(agents.userId, ctx.auth.user.id),
             search ? ilike(agents.name, `%${search}%`) : undefined
           )
         )
 
-        const totalPages = Math.ceil(total.count / pageSize)
+      const totalPages = Math.ceil(total.count / pageSize)
 
       return {
-        items:data,
-        total:total.count,
+        items: data,
+        total: total.count,
         totalPages
       }
     }),

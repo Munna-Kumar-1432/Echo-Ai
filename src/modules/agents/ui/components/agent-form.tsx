@@ -36,6 +36,20 @@ export const AgenetForm = ({
     trpc.agents.create.mutationOptions({
       onSuccess: async() => {
         await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
+        onSuccess?.()
+      },
+      onError: (error) => {
+        toast.error(error.message)
+
+      },
+    })
+  );
+
+
+    const updateAgent = useMutation(
+    trpc.agents.update.mutationOptions({
+      onSuccess: async() => {
+        await queryClient.invalidateQueries(trpc.agents.getMany.queryOptions({}));
 
         if (initialValue?.id) {
           queryClient.invalidateQueries(
@@ -53,6 +67,7 @@ export const AgenetForm = ({
     })
   );
 
+
   const form = useForm<z.infer<typeof agenetInsertSchema>>({
     resolver: zodResolver(agenetInsertSchema),
     defaultValues: {
@@ -62,11 +77,11 @@ export const AgenetForm = ({
   });
 
   const isEdit = !!initialValue?.id;
-  const isPending = createAgent.isPending;
+  const isPending = createAgent.isPending || updateAgent.isPending;
 
   const onSubmit = (values: z.infer<typeof agenetInsertSchema>) => {
     if (isEdit) {
-      console.log("TODO");
+      updateAgent.mutate({...values,id:initialValue.id})
     } else {
       createAgent.mutate(values);
     }
