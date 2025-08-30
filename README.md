@@ -43,18 +43,3 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 
 --------
-DATABASE_URL="postgresql://neondb_owner:npg_Y2ZrVk3yDiEQ@ep-round-block-adcray5q-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-
-BETTER_AUTH_SECRET="GsuRlVvHT6WDLayU3yxjHNRU46apBBtY"
-
-BETTER_AUTH_URL="http://localhost:3000"
-
-GITHUB_CLIENT_ID="Ov23liR72o3TpH5utpTW"
-GITHUB_CLIENT_SECRET="cf26cb772b7fdc54d4167030f11633e39351a002"
-
-
-GOOGLE_CLIENT_ID="9695633364-s9ptao11oj79vir3cfja83vokmgu6i8r.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="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"
-
-
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
